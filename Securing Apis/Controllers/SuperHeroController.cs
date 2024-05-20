@@ -1,8 +1,7 @@
 ﻿using Dapper;
 using Microsoft.AspNetCore.Mvc;
-
+using System.Data;
 using System.Data.SqlClient;
-
 namespace Securing_Apis.Controllers
 {
     [Route("api/[controller]")]
@@ -38,7 +37,7 @@ namespace Securing_Apis.Controllers
         public async Task<ActionResult<SuperHero>> DeleteRcord(string name)
         {
             using var connection = new SqlConnection(_configuration.GetConnectionString("PATH"));
-            connection.ExecuteAsync("delete emailAddress where FirstName=@name\r\n",new {name}); //iF YOU ARE ADDING UPDATING,DELETING DATA THEN YOU NEED TO USE EXECEUT Statement
+            await connection.ExecuteAsync("delete emailAddress where FirstName=@name\r\n", new {name}); //iF YOU ARE ADDING UPDATING,DELETING DATA THEN YOU NEED TO USE EXECEUT Statement
             return Ok(await SelectSuperHeroes(connection));
         }
 
@@ -46,5 +45,15 @@ namespace Securing_Apis.Controllers
         {
             return await connection.QueryAsync<SuperHero>("SELECT *\r\n  FROM emailAddress");
         }
+
+        [HttpGet("By Store Proceedure")]
+        public async Task<ActionResult<List<SuperHero>>> GetAll() {
+            using var conection = new SqlConnection(_configuration.GetConnectionString("PATH"));
+            var proceedure = "user.GetEmails";
+          //  var param = new DynamicParameters(id);
+            var heroes =await conection.QueryAsync<SuperHero>(proceedure, commandType: CommandType.StoredProcedure);
+            return Ok(heroes);
+        }
+
     }
 }
